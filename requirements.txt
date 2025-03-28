@@ -1,9 +1,17 @@
-# Core packages
+# Core dependencies
 streamlit==1.43
 pandas==2.0.3
 numpy==1.24.4
 
-# Additional packages required by others:
+# Additional dependencies used in the application
+python-dateutil>=2.8.2
+ipaddress>=1.0.23
+pathlib>=1.0.1
+uuid>=1.30
+hashlib
+base64
+
+# Additional packages that may be needed in future
 #connexion
 #inflection
 #PyYAML
