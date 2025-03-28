@@ -1,0 +1,12 @@
+employee_code,password,name,date_of_birth,date_of_joining,designation
+aa001,pass1,Apple,1990-06-15,2020-01-03,HR
+aa002,pass22,Banana,1988-09-22,,Trainer
+aa003,pass3,Cherry,1992-11-30,2021-10-01,Counselor
+aa004,pass4,Durian,1991-04-05,,Telecaller
+aa005,pass5,Elderberry,1989-02-18,2019-05-05,Trainer
+aa006,pass6,Fig,2024-03-20,,Counselor
+aa007,pass77,Grape,1993-07-25,,Telecaller
+aa008,pass8,Honeydew,1987-12-12,,Trainer
+aa009,pass9,Mango,1994-10-08,,Counselor
+aa010,pass10,Papaya,1992-01-03,,HR
+aa011,pass11,Test,2025-03-25,2025-03-01,HR

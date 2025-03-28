@@ -1,0 +1,93 @@
+Set Up Oracle Database Tables
+Before modifying the code, create two tables in your Oracle database to store user data and attendance logs. Run the following SQL commands in your Oracle database environment (e.g., SQL*Plus or SQL Developer):
+sql
+
+CREATE TABLE users (
+    username VARCHAR(50) PRIMARY KEY,
+    password VARCHAR(64),  -- Stores SHA256 hashed passwords
+    name VARCHAR(100),
+    dob DATE,
+    date_of_joining DATE
+);
+
+CREATE TABLE attendance_logs (
+    id NUMBER GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    username VARCHAR(50),
+    date DATE,
+    login_time VARCHAR(8),  -- e.g., '08:30:00'
+    logout_time VARCHAR(8),
+    FOREIGN KEY (username) REFERENCES users(username),
+    CONSTRAINT unique_user_date UNIQUE (username, date)
+);
+
+The users table stores employee information, and the attendance_logs table tracks daily login/logout times with a unique constraint to prevent multiple entries per user per day.
+
+# mkdir .streamlit
+# pip install mysql-connector-python
+
+    def verify_login(self, username, password):
+        # Establish the database connection
+        conn = mysql.connector.connect(
+            host='localhost',
+            username='root',
+            password="12345678",
+            database="employee_portal"
+        )
+        # Create a cursor object
+        cursor = conn.cursor()
+        
+        # Define the SQL query
+        query = "SELECT password FROM users WHERE username = %s"
+        # Execute the query with the username parameter
+        cursor.execute(query, (username.lower(),))
+        
+        # Fetch the result (expecting one row since username is unique)
+        result = cursor.fetchone()
+        
+        # Close the cursor and connection
+        cursor.close()
+        conn.close()
+        
+        # Check if a result was found and compare passwords
+        if result:
+            stored_password = result[0]  # First column of the result (password)
+            return stored_password == self.hash_password(password)
+        return False
+
+### Bugs to solve / features to add
+
+
+1) Add holiday page #Done *****Need to create table of holidays
+2) Add regularization page #Done  ******
+3) Fix total working hours.  # Done **********
+4) Fix color coding for calender  #Legends to use 
+5) insert company logo and footer all rights reserved #Done **********
+
+## Ideas for admin page 
+1) Upcoming birthdays page #Done ******
+2) regularization approval #Done *****
+3) view all employee records #Done **** Refinements required
+4) direct edit option in calender #Dropped idea
+5) generate attendance csv #Done ******
+6) HR request msg in regularization page "for" typo 
+7) fix admin panel
+
+CREATE TABLE regularization_requests (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50),
+    date DATE,
+    request_type VARCHAR(50),
+    requested_in_time VARCHAR(8),
+    requested_out_time VARCHAR(8),
+    reason TEXT,
+    status VARCHAR(20) DEFAULT 'Pending',
+    request_timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (username) REFERENCES users(username)
+);
+
+
+
+
+[theme]
+base = "light"  # or "dark"
+backgroundColor = "#95c9bc"  

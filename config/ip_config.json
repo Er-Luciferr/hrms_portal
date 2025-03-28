@@ -1,0 +1,8 @@
+{
+    "allowed_ips": [
+        "127.0.0.1",
+        "192.168.1.100",
+        "192.168.31.46"
+    ],
+    "description": "List of IP addresses allowed to access the application. Add your specific IP addresses here."
+}

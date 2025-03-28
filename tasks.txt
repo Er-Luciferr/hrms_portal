@@ -1,0 +1,11 @@
+# fix user profile page  ************Done
+# Out button not working ************Done 
+# Admin page not display ************Done
+# photos not getting updated in real time **Done
+# insert logo and pick color ********Done
+# change color of IN and Out button (st.sidebar.info(''))
+# remove index of calender 
+# Fix regularization ****************Done
+# Change view records page **********Done 
+# Restict user for regularization when in time not present 
+# Make in and out time am pm 
