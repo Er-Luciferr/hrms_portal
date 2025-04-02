@@ -11,15 +11,9 @@ from pages.blog_notice import BlogNoticePage
 from pages.reported_ips import ReportedIPsPage
 from utils.ip_utils import get_allowed_ips, ip_in_allowed_list, is_app_running_locally, get_client_ip, get_private_ip
 
-# Import API endpoint handlers
-http_server_thread = None
-try:
-    from api.ip_endpoint import start_server
-    # Start the HTTP server if IP reporting is enabled
-    if os.environ.get("IP_REPORTING_ENABLED", "false").lower() == "true":
-        http_server_thread = start_server()
-except Exception as e:
-    print(f"Warning: Could not start IP endpoint server: {e}")
+# Import API endpoint handlers, but don't start server automatically
+# The HTTP server should be run as a separate process
+# from api.ip_endpoint import start_server
 
 class EmployeeAttendanceApp:
     def __init__(self):  

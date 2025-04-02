@@ -4,6 +4,29 @@ import sys
 import argparse
 import json
 from pathlib import Path
+import logging
+import subprocess
+
+# Setup logging
+logging.basicConfig(level=logging.INFO,
+                   format='%(asctime)s - [%(levelname)s] - %(message)s')
+logger = logging.getLogger("run")
+
+def start_http_server():
+    """Start the HTTP server for IP reporting as a separate process"""
+    try:
+        # Create a detached process
+        if os.name == 'nt':  # Windows
+            proc = subprocess.Popen([sys.executable, '-m', 'api.ip_endpoint'],
+                                   creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+        else:  # Unix/Linux
+            proc = subprocess.Popen([sys.executable, '-m', 'api.ip_endpoint'],
+                                   start_new_session=True)
+        logger.info(f"Started HTTP server as process ID {proc.pid}")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to start HTTP server: {e}")
+        return False
 
 def main():
     parser = argparse.ArgumentParser(description="Run the Employee Attendance System")
@@ -52,6 +75,16 @@ def main():
         type=str,
         help="Set the endpoint URL for sending private IP data"
     )
+    parser.add_argument(
+        "--start-server", 
+        action="store_true",
+        help="Start the HTTP server for receiving IP reports"
+    )
+    parser.add_argument(
+        "--server-host", 
+        type=str,
+        help="Set the server hostname for IP reporting"
+    )
     
     args = parser.parse_args()
     
@@ -78,7 +111,7 @@ def main():
         with open(ip_config_path, "r") as f:
             config = json.load(f)
     except Exception as e:
-        print(f"Error loading IP configuration: {e}")
+        logger.error(f"Error loading IP configuration: {e}")
         config = {
             "allowed_ips": ["127.0.0.1"],
             "enabled": True,
@@ -90,46 +123,49 @@ def main():
     # Process arguments
     if args.enable_ip_restriction:
         config["enabled"] = True
-        print("IP restriction ENABLED")
+        logger.info("IP restriction ENABLED")
     
     if args.disable_ip_restriction:
         config["enabled"] = False
-        print("IP restriction DISABLED")
+        logger.info("IP restriction DISABLED")
     
     if args.add_ip:
         ip = args.add_ip
         if ip not in config["allowed_ips"]:
             config["allowed_ips"].append(ip)
-            print(f"Added IP address: {ip}")
+            logger.info(f"Added IP address: {ip}")
         else:
-            print(f"IP address {ip} already in allowed list")
+            logger.info(f"IP address {ip} already in allowed list")
     
     if args.remove_ip:
         ip = args.remove_ip
         if ip in config["allowed_ips"]:
             config["allowed_ips"].remove(ip)
-            print(f"Removed IP address: {ip}")
+            logger.info(f"Removed IP address: {ip}")
         else:
-            print(f"IP address {ip} not in allowed list")
+            logger.info(f"IP address {ip} not in allowed list")
     
     if args.send_ip:
         config["report_ip"] = True
-        print("IP reporting ENABLED")
+        logger.info("IP reporting ENABLED")
     
     if args.ip_endpoint:
         config["ip_endpoint"] = args.ip_endpoint
-        print(f"IP reporting endpoint set to: {args.ip_endpoint}")
+        logger.info(f"IP reporting endpoint set to: {args.ip_endpoint}")
+    
+    if args.server_host:
+        os.environ["SERVER_HOST"] = args.server_host
+        logger.info(f"Server hostname set to: {args.server_host}")
     
     if args.show_ip_config:
-        print("\nCurrent IP Configuration:")
-        print(f"IP Restriction: {'ENABLED' if config.get('enabled', True) else 'DISABLED'}")
-        print(f"IP Reporting: {'ENABLED' if config.get('report_ip', False) else 'DISABLED'}")
+        logger.info("\nCurrent IP Configuration:")
+        logger.info(f"IP Restriction: {'ENABLED' if config.get('enabled', True) else 'DISABLED'}")
+        logger.info(f"IP Reporting: {'ENABLED' if config.get('report_ip', False) else 'DISABLED'}")
         if config.get('report_ip', False):
-            print(f"Reporting Endpoint: {config.get('ip_endpoint', 'http://localhost:5000/api/ip-report')}")
-        print("\nAllowed IP Addresses:")
+            logger.info(f"Reporting Endpoint: {config.get('ip_endpoint', 'http://localhost:5000/api/ip-report')}")
+        logger.info("\nAllowed IP Addresses:")
         for ip in config["allowed_ips"]:
-            print(f"  - {ip}")
-        print()
+            logger.info(f"  - {ip}")
     
     # Save the updated config 
     with open(ip_config_path, "w") as f:
@@ -140,28 +176,37 @@ def main():
     os.environ["IP_REPORTING_ENABLED"] = str(config.get("report_ip", False)).lower()
     os.environ["IP_REPORTING_ENDPOINT"] = config.get("ip_endpoint", "http://localhost:5000/api/ip-report")
     
+    # Start the HTTP server if requested
+    if args.start_server:
+        success = start_http_server()
+        if success:
+            logger.info("HTTP server for IP reporting started successfully")
+        else:
+            logger.error("Failed to start HTTP server")
+    
     # Send private IP to endpoint if enabled
     if config.get("report_ip", False):
         try:
             from utils.ip_sender import send_private_ip_to_endpoint
             if send_private_ip_to_endpoint():
-                print("Successfully sent private IP to endpoint")
+                logger.info("Successfully sent private IP to endpoint")
             else:
-                print("Failed to send private IP to endpoint")
+                logger.error("Failed to send private IP to endpoint")
         except Exception as e:
-            print(f"Error sending private IP: {e}")
+            logger.error(f"Error sending private IP: {e}")
     
     # Handle override settings
     if args.override_code:
         os.environ["ADMIN_OVERRIDE_CODE"] = args.override_code
-        print(f"Custom admin override code set")
+        logger.info(f"Custom admin override code set")
     
     if args.force_override:
         # Create a temporary file to signal force override to the app
         Path(".force_override").touch()
-        print("Force override mode enabled - IP restrictions will be bypassed")
+        logger.info("Force override mode enabled - IP restrictions will be bypassed")
     
     # Run the Streamlit application
+    logger.info("Starting Streamlit application...")
     sys.argv = ["streamlit", "run", "app.py"]
     sys.exit(stcli.main())
 

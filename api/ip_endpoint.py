@@ -4,6 +4,12 @@ import threading
 import os
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import urllib.parse
+import logging
+
+# Setup logging
+logging.basicConfig(level=logging.INFO, 
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger("ip_reporting")
 
 class IPReportHandler(BaseHTTPRequestHandler):
     def do_POST(self):
@@ -48,6 +54,7 @@ class IPReportHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     response = json.dumps({"status": "success", "received_ip": private_ip})
                     self.wfile.write(response.encode('utf-8'))
+                    logger.info(f"Successfully received IP: {private_ip}")
                 else:
                     # Send error response - no IP provided
                     self.send_response(400)
@@ -55,6 +62,7 @@ class IPReportHandler(BaseHTTPRequestHandler):
                     self.end_headers()
                     response = json.dumps({"status": "error", "message": "No private_ip provided"})
                     self.wfile.write(response.encode('utf-8'))
+                    logger.warning("Received request with no private_ip")
             except Exception as e:
                 # Send error response - processing error
                 self.send_response(500)
@@ -62,6 +70,7 @@ class IPReportHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 response = json.dumps({"status": "error", "message": str(e)})
                 self.wfile.write(response.encode('utf-8'))
+                logger.error(f"Error processing request: {e}")
         else:
             # Path not found
             self.send_response(404)
@@ -73,19 +82,38 @@ class IPReportHandler(BaseHTTPRequestHandler):
     def log_message(self, format, *args):
         # Suppress or customize logging if needed
         if os.environ.get("DEBUG", "false").lower() == "true":
-            print("[IP Server]", format % args)
+            logger.debug(format % args)
 
 def run_http_server():
     # Get the port from environment or use default
     port = int(os.environ.get("IP_SERVER_PORT", 5000))
-    server_address = ('', port)
-    httpd = HTTPServer(server_address, IPReportHandler)
-    print(f"HTTP API server started on port {port}")
-    httpd.serve_forever()
+    
+    # Use 0.0.0.0 to listen on all interfaces instead of just localhost
+    server_address = ('0.0.0.0', port)
+    
+    try:
+        httpd = HTTPServer(server_address, IPReportHandler)
+        logger.info(f"HTTP API server started on port {port}")
+        httpd.serve_forever()
+    except Exception as e:
+        logger.error(f"Failed to start HTTP server: {e}")
 
 # Start HTTP server in a separate thread
 def start_server():
     server_thread = threading.Thread(target=run_http_server, daemon=True)
     server_thread.start()
-    print(f"IP reporting server started on port {os.environ.get('IP_SERVER_PORT', 5000)}")
-    return server_thread 
+    logger.info(f"IP reporting server started on port {os.environ.get('IP_SERVER_PORT', 5000)}")
+    return server_thread
+
+# Only start the server if this script is run directly, not when imported
+if __name__ == "__main__":
+    start_server()
+    
+    # Keep the main thread alive
+    import time
+    try:
+        while True:
+            time.sleep(60)
+    except KeyboardInterrupt:
+        logger.info("Server shutting down")
+        pass 
