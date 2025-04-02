@@ -4,6 +4,7 @@ import json
 import ipaddress
 from pathlib import Path
 import streamlit as st
+import requests
 
 def is_valid_ip(ip_str):
     """Check if the given string is a valid IP address"""
@@ -13,22 +14,23 @@ def is_valid_ip(ip_str):
     except ValueError:
         return False
 
-def get_machine_ip():
-    """Get the IP address of the machine running the application"""
+def get_private_ip():
+    """Get the private IP address of the machine running the application"""
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
     try:
-        # Connect to an external server to get our IP
-        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        # Use an external IP to determine the outbound interface
         s.connect(("8.8.8.8", 80))
         ip = s.getsockname()[0]
+    except Exception as e:
+        ip = "127.0.0.1"
+    finally:
         s.close()
-        return ip
-    except:
-        # Fallback to hostname
-        try:
-            hostname = socket.gethostname()
-            return socket.gethostbyname(hostname)
-        except:
-            return "127.0.0.1"
+    return ip
+
+# For backward compatibility
+def get_machine_ip():
+    """Get the IP address of the machine running the application (alias for get_private_ip)"""
+    return get_private_ip()
 
 def get_client_ip():
     """Get the client's IP address"""
@@ -56,7 +58,7 @@ def is_app_running_locally():
         
         # Check local environment indicators
         local_hosts = ["localhost", "127.0.0.1", "::1"]
-        machine_ip = get_machine_ip()
+        machine_ip = get_private_ip()
         
         # If machine IP is in local_hosts, it's likely running locally
         if machine_ip in local_hosts:

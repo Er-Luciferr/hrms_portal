@@ -42,6 +42,16 @@ def main():
         type=str,
         help="Set a custom admin override code (default: admin123)"
     )
+    parser.add_argument(
+        "--send-ip", 
+        action="store_true",
+        help="Send private IP to the configured endpoint"
+    )
+    parser.add_argument(
+        "--ip-endpoint", 
+        type=str,
+        help="Set the endpoint URL for sending private IP data"
+    )
     
     args = parser.parse_args()
     
@@ -56,7 +66,9 @@ def main():
         default_config = {
             "allowed_ips": ["127.0.0.1"],
             "enabled": True,
-            "description": "List of IP addresses allowed to access the application"
+            "description": "List of IP addresses allowed to access the application",
+            "report_ip": False,
+            "ip_endpoint": "http://localhost:8501/api/ip-report"
         }
         with open(ip_config_path, "w") as f:
             json.dump(default_config, f, indent=4)
@@ -70,7 +82,9 @@ def main():
         config = {
             "allowed_ips": ["127.0.0.1"],
             "enabled": True,
-            "description": "List of IP addresses allowed to access the application"
+            "description": "List of IP addresses allowed to access the application",
+            "report_ip": False,
+            "ip_endpoint": "http://localhost:8501/api/ip-report"
         }
     
     # Process arguments
@@ -98,9 +112,20 @@ def main():
         else:
             print(f"IP address {ip} not in allowed list")
     
+    if args.send_ip:
+        config["report_ip"] = True
+        print("IP reporting ENABLED")
+    
+    if args.ip_endpoint:
+        config["ip_endpoint"] = args.ip_endpoint
+        print(f"IP reporting endpoint set to: {args.ip_endpoint}")
+    
     if args.show_ip_config:
         print("\nCurrent IP Configuration:")
         print(f"IP Restriction: {'ENABLED' if config.get('enabled', True) else 'DISABLED'}")
+        print(f"IP Reporting: {'ENABLED' if config.get('report_ip', False) else 'DISABLED'}")
+        if config.get('report_ip', False):
+            print(f"Reporting Endpoint: {config.get('ip_endpoint', 'http://localhost:8501/api/ip-report')}")
         print("\nAllowed IP Addresses:")
         for ip in config["allowed_ips"]:
             print(f"  - {ip}")
@@ -112,6 +137,19 @@ def main():
     
     # Set environment variables
     os.environ["IP_RESTRICTION_ENABLED"] = str(config.get("enabled", True)).lower()
+    os.environ["IP_REPORTING_ENABLED"] = str(config.get("report_ip", False)).lower()
+    os.environ["IP_REPORTING_ENDPOINT"] = config.get("ip_endpoint", "http://localhost:8501/api/ip-report")
+    
+    # Send private IP to endpoint if enabled
+    if config.get("report_ip", False):
+        try:
+            from utils.ip_sender import send_private_ip_to_endpoint
+            if send_private_ip_to_endpoint():
+                print("Successfully sent private IP to endpoint")
+            else:
+                print("Failed to send private IP to endpoint")
+        except Exception as e:
+            print(f"Error sending private IP: {e}")
     
     # Handle override settings
     if args.override_code:

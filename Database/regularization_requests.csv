@@ -28,7 +28,10 @@ id,employee_code,date,request_type,requested_in_time,requested_out_time,reason,s
 27,aa011,2025-03-25,Correct Out-Time,,16:00:00,njn,Completed,
 28,aa001,2025-03-25,Correct Out-Time,,18:00:00,falkfa,Completed,
 29,aa002,2025-03-26,Correct In-Time,08:00:00,,afnaf,Completed,
-30,aa004,2025-03-26,Correct In-Time,10:00:00,,fs,Approved,
+30,aa004,2025-03-26,Correct In-Time,10:00:00,,fs,Completed,
 31,aa010,2025-03-25,Correct In-Time,06:45:00,,aflk,Completed,
 32,aa001,2025-03-28,Correct Out-Time,,18:00:00,dank,Completed,2025-03-28 19:49:44.326245
 33,aa006,2025-03-19,Correct Out-Time,,18:00:00,test,Completed,2025-03-28 19:51:08.637206
+34,aa006,2025-03-31,Correct In-Time,06:00:00,,vdsl,Rejected,2025-04-01 18:33:40.832752
+35,aa006,2025-03-31,Correct In-Time,06:00:00,,vdsl,Completed,2025-04-01 18:33:44.205160
+36,aa006,2025-03-31,Correct In-Time,06:00:00,,vdsl,Rejected,2025-04-01 18:33:45.080963

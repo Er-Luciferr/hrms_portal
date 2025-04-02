@@ -4,11 +4,11 @@ import os
 import json
 from pages.login_page import LoginPage
 from pages.user_profile import UserProfilePage
-from pages.attendance import AttendancePage
+from pages.attendance_new import AttendancePage
 from pages.admin_panel import AdminPanelPage
 from pages.user_settings import UserSettingsPage
 from pages.blog_notice import BlogNoticePage
-from utils.ip_utils import get_allowed_ips, ip_in_allowed_list, is_app_running_locally
+from utils.ip_utils import get_allowed_ips, ip_in_allowed_list, is_app_running_locally, get_client_ip, get_private_ip
 
 class EmployeeAttendanceApp:
     def __init__(self):  
@@ -33,21 +33,8 @@ class EmployeeAttendanceApp:
 
     def get_client_ip(self):
         """Get the client's IP address"""
-        try:
-            # Get headers using the newer st.context.headers instead of _get_websocket_headers
-            if hasattr(st, 'context') and hasattr(st.context, 'headers'):
-                headers = st.context.headers
-                if headers and "X-Forwarded-For" in headers:
-                    return headers["X-Forwarded-For"].split(",")[0].strip()
-                if headers and "X-Real-IP" in headers:
-                    return headers["X-Real-IP"]
-            
-            # Fallback to socket
-            hostname = socket.gethostname()
-            return socket.gethostbyname(hostname)
-        except:
-            return "127.0.0.1"  # Default to localhost if error
-
+        return get_client_ip()
+ 
     def main(self):
         # Initialize session state for admin override if not present
         if "admin_override" not in st.session_state:
