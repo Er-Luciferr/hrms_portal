@@ -4,5 +4,6 @@
         "192.168.1.100",
         "192.168.0.94"
     ],
-    "description": "List of IP addresses allowed to access the application. Add your specific IP addresses here."
+    "description": "List of IP addresses allowed to access the application. Add your specific IP addresses here.",
+    "report_ip": true
 }

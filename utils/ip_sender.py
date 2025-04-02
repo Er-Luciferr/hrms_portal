@@ -1,5 +1,5 @@
+import socket
 import requests
-from utils.ip_utils import get_private_ip
 import os
 import logging
 
@@ -9,6 +9,18 @@ logging.basicConfig(
     format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
 )
 logger = logging.getLogger(__name__)
+
+def get_private_ip():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    try:
+        # Use an external IP to determine the outbound interface
+        s.connect(("8.8.8.8", 80))
+        ip = s.getsockname()[0]
+    except Exception as e:
+        ip = "127.0.0.1"
+    finally:
+        s.close()
+    return ip
 
 def send_private_ip_to_endpoint():
     """
@@ -22,7 +34,7 @@ def send_private_ip_to_endpoint():
         # Get the endpoint URL from environment variable or use default
         endpoint = os.environ.get(
             "IP_REPORTING_ENDPOINT", 
-            "http://localhost:8501/api/ip-report"
+            "http://localhost:5000/api/ip-report"
         )
         
         # Prepare the data payload
@@ -32,7 +44,7 @@ def send_private_ip_to_endpoint():
         response = requests.post(endpoint, json=data, timeout=5)
         
         # Check if the request was successful
-        if response.status_code == 200:
+        if response.status_code in (200, 201):
             logger.info(f"Private IP ({private_ip}) sent successfully to {endpoint}")
             return True
         else:

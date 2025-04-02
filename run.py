@@ -68,7 +68,7 @@ def main():
             "enabled": True,
             "description": "List of IP addresses allowed to access the application",
             "report_ip": False,
-            "ip_endpoint": "http://localhost:8501/api/ip-report"
+            "ip_endpoint": "http://localhost:5000/api/ip-report"
         }
         with open(ip_config_path, "w") as f:
             json.dump(default_config, f, indent=4)
@@ -84,7 +84,7 @@ def main():
             "enabled": True,
             "description": "List of IP addresses allowed to access the application",
             "report_ip": False,
-            "ip_endpoint": "http://localhost:8501/api/ip-report"
+            "ip_endpoint": "http://localhost:5000/api/ip-report"
         }
     
     # Process arguments
@@ -125,7 +125,7 @@ def main():
         print(f"IP Restriction: {'ENABLED' if config.get('enabled', True) else 'DISABLED'}")
         print(f"IP Reporting: {'ENABLED' if config.get('report_ip', False) else 'DISABLED'}")
         if config.get('report_ip', False):
-            print(f"Reporting Endpoint: {config.get('ip_endpoint', 'http://localhost:8501/api/ip-report')}")
+            print(f"Reporting Endpoint: {config.get('ip_endpoint', 'http://localhost:5000/api/ip-report')}")
         print("\nAllowed IP Addresses:")
         for ip in config["allowed_ips"]:
             print(f"  - {ip}")
@@ -138,7 +138,7 @@ def main():
     # Set environment variables
     os.environ["IP_RESTRICTION_ENABLED"] = str(config.get("enabled", True)).lower()
     os.environ["IP_REPORTING_ENABLED"] = str(config.get("report_ip", False)).lower()
-    os.environ["IP_REPORTING_ENDPOINT"] = config.get("ip_endpoint", "http://localhost:8501/api/ip-report")
+    os.environ["IP_REPORTING_ENDPOINT"] = config.get("ip_endpoint", "http://localhost:5000/api/ip-report")
     
     # Send private IP to endpoint if enabled
     if config.get("report_ip", False):
